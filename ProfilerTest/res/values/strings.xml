@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Gprof test</string>
+    <string name="hello_world">Welcome JNI</string>
+    <string name="action_settings">Settings</string>
+    <string name="button_text">Gprof me</string>
+    <string name="func_a">Func A</string>
+    <string name="func_c">Func C</string>
+    <string name="func_d">Func D</string>
+    <string name="func_e">Func E</string>
+    <string name="func_b">Func B</string>
+    <string name="i_4000">4000</string>
+    <string name="i_2000">2000</string>
+    <string name="i_1000">1000</string>
+    <string name="i_500">500</string>
+    <string name="i_100">100</string>
+    <string name="i_10">10</string>
+    <string name="intr_s">intr/s</string>
+    <string name="interrupts_s">Interrupts/s</string>
+    <string name="number_of_requests">Number of requests</string>
+    <string name="select_function">Select function</string>
+</resources>
