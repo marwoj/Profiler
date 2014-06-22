@@ -1,10 +1,9 @@
 package com.example.hellojni;
 
-import java.util.concurrent.ExecutionException;
-
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.res.Resources.Theme;
 import android.os.AsyncTask;
 import android.os.Debug;
 import android.view.View;
@@ -15,6 +14,8 @@ import android.widget.TextView;
 
 public class ClcButtonListener implements OnClickListener {
 	ProgressDialog progress;
+	String resultA = "";
+	String resultB = "";
 
 	static Context context;
 
@@ -51,17 +52,60 @@ public class ClcButtonListener implements OnClickListener {
 			return;
 		}
 
-		progress = ProgressDialog.show(view.getContext(), "Computing",
-				"Please be patient...");
-		RunNative runNative = new RunNative();
-		runNative.execute(func, max, interrupts);
+		// progress = ProgressDialog.show(view.getContext(), "Computing",
+		// "Please be patient...");
+
+		long start = System.currentTimeMillis();
+		
+		NativeA nativeA = new NativeA(func, max , interrupts);
+		NativeB nativeB = new NativeB(func, max, 500);
+
+		Thread threadA = new Thread(nativeA);
+		Thread threadB = new Thread(nativeB);
+		threadA.start();
+		
 		try {
-			tv.setText(runNative.get());
+			Thread.sleep(10000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		threadB.start();
+
+		try {
+			threadA.join();
+			threadB.join();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-		} catch (ExecutionException e) {
-			e.printStackTrace();
 		}
+
+		String temp = resultA + " " + resultB;
+
+		// progress.dismiss();
+		tv.setText(temp);
+
+		
+		AlertDialog.Builder builder = new AlertDialog.Builder(
+				ClcButtonListener.getContext());
+		long elapsed = System.currentTimeMillis() - start;
+		int seconds = (int) (elapsed / 1000);
+		int milis = (int) (elapsed % 1000);
+		builder.setTitle("Finished!");
+		builder.setMessage("Elapsed time: " + seconds + "s " + milis + "ms");
+		builder.setPositiveButton("OK", null);
+		builder.create().show();
+
+		//
+		// RunNative runNative = new RunNative();
+		// runNative.execute(func, max, interrupts);
+		// try {
+		// tv.setText(runNative.get());
+		// } catch (InterruptedException e) {
+		// e.printStackTrace();
+		// } catch (ExecutionException e) {
+		// e.printStackTrace();
+		// }
 
 	}
 
@@ -108,6 +152,42 @@ public class ClcButtonListener implements OnClickListener {
 			func = 5;
 		}
 		return func;
+	}
+
+	private class NativeA implements Runnable {
+		private Integer probeNr;
+		private Integer max;
+		private Integer funcSelect;
+
+		public NativeA(Integer funcSelect, Integer max, Integer probeNr) {
+			this.funcSelect = funcSelect;
+			this.max = max;
+			this.probeNr = probeNr;
+		}
+
+		@Override
+		public void run() {
+			Connector cn = new Connector();
+			resultA = cn.firstTest(funcSelect, max, probeNr);
+		}
+	}
+
+	private class NativeB implements Runnable {
+		private Integer probeNr;
+		private Integer max;
+		private Integer funcSelect;
+
+		public NativeB(Integer funcSelect, Integer max, Integer probeNr) {
+			this.funcSelect = funcSelect;
+			this.max = max;
+			this.probeNr = probeNr;
+		}
+
+		@Override
+		public void run() {
+			Connector cn = new Connector();
+			resultB = cn.secondTest(funcSelect, max, probeNr);
+		}
 	}
 
 	private class RunNative extends AsyncTask<Integer, Integer, String> {
