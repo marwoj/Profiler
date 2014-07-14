@@ -2,4 +2,6 @@ ProfilerTest/libs/*
 ProfilerTest/bin/*
 ProfilerTest/obj/*
 *~
-*.class
+*.orig
+ProfilerTest/obj
+

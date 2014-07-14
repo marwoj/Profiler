@@ -1,11 +1,13 @@
 package com.example.hellojni;
 
+import java.util.concurrent.ExecutionException;
+
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.res.Resources.Theme;
 import android.os.AsyncTask;
 import android.os.Debug;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.EditText;
@@ -14,8 +16,6 @@ import android.widget.TextView;
 
 public class ClcButtonListener implements OnClickListener {
 	ProgressDialog progress;
-	String resultA = "";
-	String resultB = "";
 
 	static Context context;
 
@@ -27,16 +27,45 @@ public class ClcButtonListener implements OnClickListener {
 	public void onClick(View view) {
 
 		context = view.getContext();
-		Connector cn = new Connector();
 		TextView tv = (TextView) view.getRootView()
 				.findViewById(R.id.textView1);
-		// tv.setText(cn.getString());
 
 		Integer func = getFuncSelection(view);
 		Integer interrupts = getInterruptsNr(view);
 
 		EditText maxEditText = ((EditText) view.getRootView().findViewById(
 				R.id.max));
+		Integer max = getIterationsNr(view, maxEditText);
+
+		progress = ProgressDialog.show(view.getContext(), "Computing",
+				"Please be patient...");
+
+		// RunMultipleLibs runNative = new RunMultipleLibs();
+		// runNative.execute(func, max, interrupts);
+		//
+		//
+		// try {
+		// tv.setText(runNative.get());
+		// } catch (InterruptedException e) {
+		// e.printStackTrace();
+		// } catch (ExecutionException e) {
+		// e.printStackTrace();
+		// }
+
+		RunMultipleThreads runThreads = new RunMultipleThreads();
+		runThreads.execute(func, max, interrupts);
+
+		try {
+			tv.setText(runThreads.get());
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private Integer getIterationsNr(View view, EditText maxEditText) {
 		Integer max = 0;
 		try {
 			max = Integer.valueOf(maxEditText.getText().toString());
@@ -49,64 +78,8 @@ public class ClcButtonListener implements OnClickListener {
 					+ maxEditText.getText().toString());
 			builder.setPositiveButton("Damn it!", null);
 			builder.create().show();
-			return;
 		}
-
-		// progress = ProgressDialog.show(view.getContext(), "Computing",
-		// "Please be patient...");
-
-		long start = System.currentTimeMillis();
-		
-		NativeA nativeA = new NativeA(func, max , interrupts);
-		NativeB nativeB = new NativeB(func, max, 500);
-
-		Thread threadA = new Thread(nativeA);
-		Thread threadB = new Thread(nativeB);
-		threadA.start();
-		
-		try {
-			Thread.sleep(10000);
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		
-		threadB.start();
-
-		try {
-			threadA.join();
-			threadB.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-		String temp = resultA + " " + resultB;
-
-		// progress.dismiss();
-		tv.setText(temp);
-
-		
-		AlertDialog.Builder builder = new AlertDialog.Builder(
-				ClcButtonListener.getContext());
-		long elapsed = System.currentTimeMillis() - start;
-		int seconds = (int) (elapsed / 1000);
-		int milis = (int) (elapsed % 1000);
-		builder.setTitle("Finished!");
-		builder.setMessage("Elapsed time: " + seconds + "s " + milis + "ms");
-		builder.setPositiveButton("OK", null);
-		builder.create().show();
-
-		//
-		// RunNative runNative = new RunNative();
-		// runNative.execute(func, max, interrupts);
-		// try {
-		// tv.setText(runNative.get());
-		// } catch (InterruptedException e) {
-		// e.printStackTrace();
-		// } catch (ExecutionException e) {
-		// e.printStackTrace();
-		// }
-
+		return max;
 	}
 
 	private Integer getInterruptsNr(View view) {
@@ -154,12 +127,66 @@ public class ClcButtonListener implements OnClickListener {
 		return func;
 	}
 
-	private class NativeA implements Runnable {
-		private Integer probeNr;
-		private Integer max;
-		private Integer funcSelect;
+	private class RunMultipleThreads extends
+			AsyncTask<Integer, Integer, String> {
+		long start;
 
-		public NativeA(Integer funcSelect, Integer max, Integer probeNr) {
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			start = System.currentTimeMillis();
+		}
+
+		@Override
+		protected String doInBackground(Integer... params) {
+			NativeRunnable runA = new NativeRunnable(params[0],  params[1],
+					params[2]);
+
+			NativeRunnable runB = new NativeRunnable(params[0] - 1 , params[1],
+					params[2]);
+
+
+			Thread threadA = new Thread(runA);
+			Thread threadB = new Thread(runB);
+
+
+			try {
+				threadA.join();
+				threadB.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
+			threadA.start();
+			threadB.start();
+
+			return "Finished threads";
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			super.onPostExecute(result);
+			progress.dismiss();
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(
+					ClcButtonListener.getContext());
+			long elapsed = System.currentTimeMillis() - start;
+			int seconds = (int) (elapsed / 1000);
+			int milis = (int) (elapsed % 1000);
+			builder.setTitle("Finished!");
+			builder.setMessage("Elapsed time: " + seconds + "s " + milis + "ms");
+			builder.setPositiveButton("OK", null);
+			builder.create().show();
+		}
+
+	}
+
+	private class NativeRunnable implements Runnable {
+		private int probeNr;
+		private int max;
+		private int funcSelect;
+
+		public NativeRunnable(int funcSelect, int max, int probeNr) {
 			this.funcSelect = funcSelect;
 			this.max = max;
 			this.probeNr = probeNr;
@@ -167,30 +194,20 @@ public class ClcButtonListener implements OnClickListener {
 
 		@Override
 		public void run() {
+			long start = System.currentTimeMillis();
 			Connector cn = new Connector();
-			resultA = cn.firstTest(funcSelect, max, probeNr);
+			String res = cn.firstTest(funcSelect, max, probeNr);
+			Log.i("GPROF", "[gprof] Thread finished with result: " + res
+					+ " Func nr: " + funcSelect);
+			
+			long elapsed = System.currentTimeMillis() - start;
+			int seconds = (int) (elapsed / 1000);
+			int milis = (int) (elapsed % 1000);
+			Log.i("GPROF", "[gprof] elapsed time for func: " + funcSelect + " is " + seconds +"s "+milis + "ms");
 		}
 	}
 
-	private class NativeB implements Runnable {
-		private Integer probeNr;
-		private Integer max;
-		private Integer funcSelect;
-
-		public NativeB(Integer funcSelect, Integer max, Integer probeNr) {
-			this.funcSelect = funcSelect;
-			this.max = max;
-			this.probeNr = probeNr;
-		}
-
-		@Override
-		public void run() {
-			Connector cn = new Connector();
-			resultB = cn.secondTest(funcSelect, max, probeNr);
-		}
-	}
-
-	private class RunNative extends AsyncTask<Integer, Integer, String> {
+	private class RunMultipleLibs extends AsyncTask<Integer, Integer, String> {
 
 		long start;
 

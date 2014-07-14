@@ -16,12 +16,9 @@
 package com.example.hellojni;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
-import android.view.Menu;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 
 public class HelloJni extends Activity {
 	/** Called when the activity is first created. */
@@ -32,9 +29,10 @@ public class HelloJni extends Activity {
 		setContentView(R.layout.fragment_welcome);
 
 		Button btnRoot = (Button) this.findViewById(R.id.btnWelcome);
-		btnRoot.setOnClickListener(new ClcButtonListener());	
-		
+		btnRoot.setOnClickListener(new ClcButtonListener());
+
 		EditText tv = (EditText) this.findViewById(R.id.max);
-		tv.setText(Integer.toString(Integer.MAX_VALUE));
+		tv.setText(Integer.toString(999999));
+		// tv.setText(Integer.toString(Integer.MAX_VALUE));
 	}
 }
