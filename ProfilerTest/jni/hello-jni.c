@@ -19,14 +19,14 @@
 
 //#include <string.h>
 
-void funcA(jlong);
-void funcB(jlong);
-void funcC(jlong);
-void funcD(jlong);
-void funcE(jlong);
-void funcE1(jlong);
-void funcE2(jlong);
-void funcE3(jlong);
+void funcA( jlong);
+void funcB( jlong);
+void funcC( jlong);
+void funcD( jlong);
+void funcE( jlong);
+void funcE1( jlong);
+void funcE2( jlong);
+void funcE3( jlong);
 
 /* This is a trivial JNI example where we use a native method
  * to return a new VM String. See the corresponding Java source
@@ -34,50 +34,44 @@ void funcE3(jlong);
  *
  *   apps/samples/hello-jni/project/src/com/example/hellojni/HelloJni.java
  */
-jstring
-Java_com_example_hellojni_Connector_stringFromJNI( JNIEnv* env,
-                                                  jobject thiz )
-{
+jstring Java_com_example_hellojni_Connector_stringFromJNI(JNIEnv* env,
+		jobject thiz) {
 #if defined(__arm__)
-  #if defined(__ARM_ARCH_7A__)
-    #if defined(__ARM_NEON__)
-      #define ABI "armeabi-v7a/NEON"
-    #else
-      #define ABI "armeabi-v7a"
-    #endif
-  #else
-   #define ABI "armeabi"
-  #endif
-#elif defined(__i386__)
-   #define ABI "x86"
-#elif defined(__mips__)
-   #define ABI "mips"
+#if defined(__ARM_ARCH_7A__)
+#if defined(__ARM_NEON__)
+#define ABI "armeabi-v7a/NEON"
 #else
-   #define ABI "unknown"
+#define ABI "armeabi-v7a"
+#endif
+#else
+#define ABI "armeabi"
+#endif
+#elif defined(__i386__)
+#define ABI "x86"
+#elif defined(__mips__)
+#define ABI "mips"
+#else
+#define ABI "unknown"
 #endif
 
-
-    return (*env)->NewStringUTF(env, "Compiled with ABI " ABI ".");
+	return (*env)->NewStringUTF(env, "Compiled with ABI " ABI ".");
 }
 
 
-
-jstring
-Java_com_example_hellojni_Connector_jniButtonClick( JNIEnv* env,
-                                                  jobject thiz, jint funcSelect, jlong max, jint probeNr)
-{
+jstring Java_com_example_hellojni_Connector_jniButtonClick(JNIEnv* env,
+		jobject thiz, jint funcSelect, jlong max, jint probeNr) {
 	char * probes;
-	if(probeNr == 10)
+	if (probeNr == 10)
 		probes = "10";
-	else if(probeNr == 100)
+	else if (probeNr == 100)
 		probes = "100";
-	else if(probeNr == 500)
+	else if (probeNr == 500)
 		probes = "500";
-	else if(probeNr == 1000)
+	else if (probeNr == 1000)
 		probes = "1000";
-	else if(probeNr == 2000)
+	else if (probeNr == 2000)
 		probes = "2000";
-	else if(probeNr == 4000)
+	else if (probeNr == 4000)
 		probes = "4000";
 	else
 		probes = "100";
@@ -85,91 +79,87 @@ Java_com_example_hellojni_Connector_jniButtonClick( JNIEnv* env,
 	setenv("CPUPROFILE_FREQUENCY", probes, 1);
 	monstartup("libhello-jni.so");
 
-
-	if(funcSelect == 1)
+	if (funcSelect == 1)
 		funcA(max);
-	else if(funcSelect == 2)
+	else if (funcSelect == 2)
 		funcB(max);
-	else if(funcSelect == 3)
+	else if (funcSelect == 3)
 		funcC(max);
-	else if(funcSelect == 4)
+	else if (funcSelect == 4)
 		funcD(max);
-	else if(funcSelect == 5)
+	else if (funcSelect == 5)
 		funcE(max);
 
-	setenv("CPUPROFILE", "/storage/sdcard0/gmonFirst.out", 1);
+	if (funcSelect == 4)
+		setenv("CPUPROFILE", "/storage/sdcard0/gmonFirst.out", 1);
+	else if (funcSelect == 5)
+		setenv("CPUPROFILE", "/storage/sdcard0/gmonSecond.out", 1);
+
 	moncleanup();
 	return (*env)->NewStringUTF(env, "Eureka_1");
 }
 
-
-void funcA(jlong max)
-{
+void funcA(jlong max) {
 	jlong i = 0;
-    for(;i<max;i++);
-    return;
+	for (; i < max; i++)
+		;
+	return;
 }
 
-void funcB(jlong max)
-{
+void funcB(jlong max) {
 	jlong i = 0;
-    for(;i<max;i++);
-    	funcA(max);
-    return;
+	for (; i < max; i++)
+		;
+	funcA(max);
+	return;
 }
 
-void funcC(jlong max)
-{
+void funcC(jlong max) {
 	jlong i = 0;
-    for(;i<max;i++);
-    	funcA(max);
-    	funcB(max);
-    return;
+	for (; i < max; i++)
+		;
+	funcA(max);
+	funcB(max);
+	return;
 }
 
-void funcD(jlong max)
-{
+void funcD(jlong max) {
 	jlong i = 0;
-    for(;i<max;i++);
-    	funcA(max);
-    	funcB(max);
-    	funcC(max);
-    return;
+	for (; i < max; i++)
+		;
+	funcA(max);
+	funcB(max);
+	funcC(max);
+	return;
 }
 
-void funcE(jlong max)
-{
-	jlong i=0;
-	for(;i<max;i++)
+void funcE(jlong max) {
+	jlong i = 0;
+	for (; i < max; i++)
+		;
 	funcE1(max);
 	funcE2(max);
+	funcE3(max);
 }
 
-void funcE1(jlong max)
-{
-	jlong i=0;
-	for(;i<max*max;i++);
-	for(i=0;i<10;i++){
-		funcE2(max);
-		funcE3(max);
-	}
+void funcE1(jlong max) {
+	jlong i = 0;
+	for (; i < max; i++)
+		;
+	funcE2(max);
+	funcE3(max);
 }
 
-
-void funcE2(jlong max)
-{
-	jlong i=0;
-	for(;i<max*max*max;i++);
-	for(i=0;i<10;i++){
-		funcE3(max);
-	}
+void funcE2(jlong max) {
+	jlong i = 0;
+	for (; i < max; i++)
+		;
+	funcE3(max);
 }
 
-
-void funcE3(jlong max)
-{
-	jlong i=0;
-	for(;i<max*max*max;i++);
+void funcE3(jlong max) {
+	jlong i = 0;
+	for (; i < max; i++)
+		;
 }
-
 

@@ -1,2 +1,5 @@
 ProfilerTest/libs/*
+*.class
+ProfilerTest/bin
 *~
+ProfilerTest/obj

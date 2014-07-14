@@ -35,6 +35,7 @@ public class HelloJni extends Activity {
 		btnRoot.setOnClickListener(new ClcButtonListener());	
 		
 		EditText tv = (EditText) this.findViewById(R.id.max);
-		tv.setText(Integer.toString(Integer.MAX_VALUE));
+		tv.setText(Integer.toString(99999999));
+//		tv.setText(Integer.toString(Integer.MAX_VALUE));
 	}
 }
